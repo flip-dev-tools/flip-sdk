@@ -1,1 +1,1 @@
-export { test } from './utils.js';
+export { default as client } from './client.js';
