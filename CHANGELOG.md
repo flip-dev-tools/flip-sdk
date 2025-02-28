@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 0.0.8
+
+### Patch Changes
+
+- d57e659: Reuse client if already created
+
 ## 0.0.7
 
 ### Patch Changes
