@@ -1,0 +1,33 @@
+{
+  "name": "flip-sdk",
+  "version": "0.0.1",
+  "description": "SDK for using Flip at feature-flipper.com",
+  "keywords": [
+    "flip",
+    "sdk",
+    "feature-flipper"
+  ],
+  "homepage": "https://feature-flipper.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flip-dev-tools/flip-sdk/issues"
+  },
+  "author": "Matt Corwin <corwin.matt@gmail.com> (https://feature-flipper.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flip-dev-tools/flip-sdk.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "prettier": "^3.5.2",
+    "typescript": "^5.7.3"
+  }
+}
