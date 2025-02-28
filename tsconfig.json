@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "lib": ["es2022"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "target": "es2022",
@@ -14,8 +13,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
 
-    "module": "ES2022",
-    "moduleResolution": "Bundler",
+    "module": "NodeNext",
     "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,

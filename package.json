@@ -9,6 +9,7 @@
   ],
   "homepage": "https://feature-flipper.com",
   "license": "MIT",
+  "main": "dist/index.js",
   "bugs": {
     "url": "https://github.com/flip-dev-tools/flip-sdk/issues"
   },
@@ -22,11 +23,14 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check-format": "prettier --check .",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
+    "build": "rm -rf dist && tsc",
+    "ci": "npm run build && npm run check-format && npm run check-exports"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
+    "@arethetypeswrong/cli": "^0.17.4",
     "prettier": "^3.5.2",
     "typescript": "^5.7.3"
   }

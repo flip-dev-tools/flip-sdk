@@ -1,1 +1,1 @@
-export { test } from './utils';
+export { test } from './utils.js';
