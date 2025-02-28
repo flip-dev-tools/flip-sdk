@@ -9,7 +9,15 @@ interface Flipper {
   isDefault: boolean;
 }
 
-const client = ({ apiKey }: { apiKey?: string }) => {
+interface Client {
+  init: ({ tenantId }: { tenantId: string }) => Promise<Client>;
+  isEnabled: (flipperName: string) => boolean;
+  getStringList: (flipperName: string) => string[];
+}
+
+let instance: ReturnType<typeof createClient> | null = null;
+
+const createClient = ({ apiKey }: { apiKey?: string }): Client => {
   let booleanFlippers = new Map<string, Flipper>();
   let stringListFlippers = new Map<string, Flipper>();
 
@@ -23,13 +31,13 @@ const client = ({ apiKey }: { apiKey?: string }) => {
     'x-api-key': key,
   };
 
-  const init = async ({ tenantId }: { tenantId: string }): Promise<Flipper[]> => {
+  const init = async ({ tenantId }: { tenantId: string }): Promise<Client> => {
     const encodedTenantId = encodeURIComponent(tenantId);
     const response = await fetch(`${baseUrl}/flippers/${encodedTenantId}`, { headers });
 
     if (!response.ok) {
       console.error(`Failed to fetch flippers for tenant ${tenantId}`);
-      return [];
+      return clientFns;
     }
 
     const data = await response.json();
@@ -43,7 +51,7 @@ const client = ({ apiKey }: { apiKey?: string }) => {
       });
       return data;
     }
-    return [];
+    return clientFns;
   };
 
   const isEnabled = (flipperName: string) => {
@@ -54,11 +62,20 @@ const client = ({ apiKey }: { apiKey?: string }) => {
     return stringListFlippers.get(flipperName)?.values ?? [];
   };
 
-  return {
+  const clientFns = {
     init,
     isEnabled,
     getStringList,
   };
+
+  return clientFns;
 };
 
-export default client;
+const flipClient = ({ apiKey }: { apiKey?: string }) => {
+  if (!instance) {
+    instance = createClient({ apiKey });
+  }
+  return instance;
+};
+
+export default flipClient;
