@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 0.0.6
+
+### Patch Changes
+
+- a49cc59: fix bug around flipper structure
+
 ## 0.0.5
 
 ### Patch Changes
