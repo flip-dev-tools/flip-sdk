@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 0.0.5
+
+### Patch Changes
+
+- 7ebad7c: Add more functionality to client
+
 ## 0.0.4
 
 ### Patch Changes
