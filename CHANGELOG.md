@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 0.0.7
+
+### Patch Changes
+
+- 42e6fc9: bugfix move url into client
+
 ## 0.0.6
 
 ### Patch Changes
