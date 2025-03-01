@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 0.0.10
+
+### Patch Changes
+
+- 3e02d5a: Refactor load response type and expose flipper response
+
 ## 0.0.9
 
 ### Patch Changes
