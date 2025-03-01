@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 0.0.9
+
+### Patch Changes
+
+- 7e3b30e: back to non singleton
+
 ## 0.0.8
 
 ### Patch Changes
