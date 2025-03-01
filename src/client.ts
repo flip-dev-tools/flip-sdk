@@ -10,14 +10,20 @@ interface Flipper {
 }
 
 interface Client {
-  loadFlippers: ({ tenantId }: { tenantId: string }) => Promise<Client>;
+  flipperData: Flipper[];
+  loadFlipperData: ({
+    tenantId,
+  }: {
+    tenantId: string;
+  }) => Promise<{ flipperData: Flipper[]; status: 'success' | 'error' }>;
   isEnabled: (flipperName: string) => boolean;
   getStringList: (flipperName: string) => string[];
 }
 
-const client = ({ apiKey }: { apiKey?: string }): Client => {
+const client = ({ apiKey, cache = true }: { apiKey?: string; cache?: boolean }): Client => {
   let booleanFlippers = new Map<string, Flipper>();
   let stringListFlippers = new Map<string, Flipper>();
+  let flipperData: Flipper[] = [];
 
   const baseUrl = process.env.FLIP_API_BASE_URL ?? 'https://api.feature-flipper.com';
   const key = apiKey || process.env.FLIP_API_KEY;
@@ -29,27 +35,37 @@ const client = ({ apiKey }: { apiKey?: string }): Client => {
     'x-api-key': key,
   };
 
-  const loadFlippers = async ({ tenantId }: { tenantId: string }): Promise<Client> => {
-    const encodedTenantId = encodeURIComponent(tenantId);
-    const response = await fetch(`${baseUrl}/flippers/${encodedTenantId}`, { headers });
+  const loadFlipperData = async ({
+    tenantId,
+  }: {
+    tenantId: string;
+  }): Promise<{ flipperData: Flipper[]; status: 'success' | 'error' }> => {
+    try {
+      const encodedTenantId = encodeURIComponent(tenantId);
+      const response = await fetch(`${baseUrl}/flippers/${encodedTenantId}`, { headers });
 
-    if (!response.ok) {
-      console.error(`Failed to fetch flippers for tenant ${tenantId}`);
-      return clientFns;
-    }
+      if (!response.ok) {
+        console.error(`Failed to fetch flippers for tenant ${tenantId}`);
+        return { flipperData: [], status: 'error' };
+      }
 
-    const data = await response.json();
-    if (data.length > 0) {
-      data.forEach((flipper: any) => {
-        if (flipper.type === 'boolean') {
-          booleanFlippers.set(flipper.name, flipper);
-        } else if (flipper.type === 'stringList') {
-          stringListFlippers.set(flipper.name, flipper);
-        }
-      });
-      return data;
+      const data = await response.json();
+
+      if (cache) {
+        flipperData = data;
+        data.forEach((flipper: any) => {
+          if (flipper.type === 'boolean') {
+            booleanFlippers.set(flipper.name, flipper);
+          } else if (flipper.type === 'stringList') {
+            stringListFlippers.set(flipper.name, flipper);
+          }
+        });
+      }
+      return { flipperData: data, status: 'success' };
+    } catch (error) {
+      console.error(`Failed to fetch flippers for tenant ${tenantId}, ${error}`);
+      return { flipperData: [], status: 'error' };
     }
-    return clientFns;
   };
 
   const isEnabled = (flipperName: string) => {
@@ -61,7 +77,8 @@ const client = ({ apiKey }: { apiKey?: string }): Client => {
   };
 
   const clientFns = {
-    loadFlippers,
+    flipperData,
+    loadFlipperData,
     isEnabled,
     getStringList,
   };
