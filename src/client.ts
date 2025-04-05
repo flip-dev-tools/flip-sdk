@@ -7,24 +7,26 @@ interface Flipper {
   isDefault: boolean;
 }
 
+export type LoadFlipperDataSuccessResponse = {
+  flipperData: Flipper[];
+  status: 'success';
+  booleanFlippers: Map<string, Flipper>;
+  stringListFlippers: Map<string, Flipper>;
+};
+
+export type LoadFlipperDataErrorResponse = {
+  status: 'error';
+  error: string;
+};
+
+export type LoadFlipperDataResponse = LoadFlipperDataSuccessResponse | LoadFlipperDataErrorResponse;
+
 interface Client {
   flipperData: Flipper[];
   loadFlipperData: ({ tenantId }: { tenantId: string }) => Promise<LoadFlipperDataResponse>;
   isEnabled: ({ flipperName, tenantId }: { flipperName: string; tenantId: string }) => Promise<boolean>;
   getStringList: ({ flipperName, tenantId }: { flipperName: string; tenantId: string }) => Promise<string[]>;
 }
-
-type LoadFlipperDataResponse =
-  | {
-      flipperData: Flipper[];
-      status: 'success';
-      booleanFlippers: Map<string, Flipper>;
-      stringListFlippers: Map<string, Flipper>;
-    }
-  | {
-      status: 'error';
-      error: string;
-    };
 
 const client = ({
   apiKey,

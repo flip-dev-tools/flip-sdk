@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 1.0.0
+
+### Major Changes
+
+- 1dd975a: Update documentation and expose types
+
 ## 0.1.0
 
 ### Minor Changes

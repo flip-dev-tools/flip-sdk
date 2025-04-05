@@ -1,6 +1,6 @@
 {
   "name": "@flip-dev/flip-sdk",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "SDK for using Flip at feature-flipper.com",
   "keywords": [
     "flip",
