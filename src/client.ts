@@ -1,8 +1,6 @@
 interface Flipper {
-  id: string;
   name: string;
   tenantId: string;
-  stage: string;
   type: 'boolean' | 'stringList';
   enabled?: boolean;
   values?: string[];
@@ -11,18 +9,35 @@ interface Flipper {
 
 interface Client {
   flipperData: Flipper[];
-  loadFlipperData: ({
-    tenantId,
-  }: {
-    tenantId: string;
-  }) => Promise<{ flipperData: Flipper[]; status: 'success' | 'error' }>;
-  isEnabled: (flipperName: string) => boolean;
-  getStringList: (flipperName: string) => string[];
+  loadFlipperData: ({ tenantId }: { tenantId: string }) => Promise<LoadFlipperDataResponse>;
+  isEnabled: ({ flipperName, tenantId }: { flipperName: string; tenantId: string }) => Promise<boolean>;
+  getStringList: ({ flipperName, tenantId }: { flipperName: string; tenantId: string }) => Promise<string[]>;
 }
 
-const client = ({ apiKey, cache = true }: { apiKey?: string; cache?: boolean }): Client => {
-  let booleanFlippers = new Map<string, Flipper>();
-  let stringListFlippers = new Map<string, Flipper>();
+type LoadFlipperDataResponse =
+  | {
+      flipperData: Flipper[];
+      status: 'success';
+      booleanFlippers: Map<string, Flipper>;
+      stringListFlippers: Map<string, Flipper>;
+    }
+  | {
+      status: 'error';
+      error: string;
+    };
+
+const client = ({
+  apiKey,
+  cache = false,
+  defaultsFallback = false,
+}: {
+  apiKey?: string;
+  cache?: boolean;
+  defaultsFallback?: boolean;
+}): Client => {
+  let cachedBooleanFlippers = new Map<string, Flipper>();
+  let cachedStringListFlippers = new Map<string, Flipper>();
+  let cachedTenantId: string | null = null;
   let flipperData: Flipper[] = [];
 
   const baseUrl = process.env.FLIP_API_BASE_URL ?? 'https://api.feature-flipper.com';
@@ -35,45 +50,63 @@ const client = ({ apiKey, cache = true }: { apiKey?: string; cache?: boolean }):
     'x-api-key': key,
   };
 
-  const loadFlipperData = async ({
-    tenantId,
-  }: {
-    tenantId: string;
-  }): Promise<{ flipperData: Flipper[]; status: 'success' | 'error' }> => {
+  const loadFlipperData = async ({ tenantId }: { tenantId: string }): Promise<LoadFlipperDataResponse> => {
     try {
+      const booleanFlippers = new Map<string, Flipper>();
+      const stringListFlippers = new Map<string, Flipper>();
       const encodedTenantId = encodeURIComponent(tenantId);
-      const response = await fetch(`${baseUrl}/flippers/${encodedTenantId}`, { headers });
+      const response = await fetch(`${baseUrl}/flippers/${encodedTenantId}?defaultsFallback=${defaultsFallback}`, {
+        headers,
+      });
 
       if (!response.ok) {
         console.error(`Failed to fetch flippers for tenant ${tenantId}`);
-        return { flipperData: [], status: 'error' };
+        return { status: 'error', error: 'Failed to fetch flippers' };
       }
 
-      const data = await response.json();
+      const body = await response.json();
+      body.data.forEach((flipper: any) => {
+        if (flipper.type === 'boolean') {
+          booleanFlippers.set(flipper.name, flipper);
+        } else if (flipper.type === 'stringList') {
+          stringListFlippers.set(flipper.name, flipper);
+        }
+      });
 
       if (cache) {
-        flipperData = data;
-        data.forEach((flipper: any) => {
-          if (flipper.type === 'boolean') {
-            booleanFlippers.set(flipper.name, flipper);
-          } else if (flipper.type === 'stringList') {
-            stringListFlippers.set(flipper.name, flipper);
-          }
-        });
+        cachedTenantId = tenantId;
+        flipperData = body.data;
+        cachedBooleanFlippers = booleanFlippers;
+        cachedStringListFlippers = stringListFlippers;
       }
-      return { flipperData: data, status: 'success' };
+
+      return { flipperData: body.data, status: 'success', booleanFlippers, stringListFlippers };
     } catch (error) {
       console.error(`Failed to fetch flippers for tenant ${tenantId}, ${error}`);
-      return { flipperData: [], status: 'error' };
+      return { status: 'error', error: 'Failed to fetch flippers' };
     }
   };
 
-  const isEnabled = (flipperName: string) => {
-    return booleanFlippers.get(flipperName)?.enabled ?? false;
+  const isEnabled = async ({ flipperName, tenantId }: { flipperName: string; tenantId: string }) => {
+    if (cache && cachedTenantId === tenantId && cachedBooleanFlippers.size > 0) {
+      return cachedBooleanFlippers.get(flipperName)?.enabled ?? false;
+    }
+    const response = await loadFlipperData({ tenantId });
+    if (response.status === 'error') {
+      return false;
+    }
+    return response.booleanFlippers.get(flipperName)?.enabled ?? false;
   };
 
-  const getStringList = (flipperName: string) => {
-    return stringListFlippers.get(flipperName)?.values ?? [];
+  const getStringList = async ({ flipperName, tenantId }: { flipperName: string; tenantId: string }) => {
+    if (cache && cachedTenantId === tenantId && cachedStringListFlippers.size > 0) {
+      return cachedStringListFlippers.get(flipperName)?.values ?? [];
+    }
+    const response = await loadFlipperData({ tenantId });
+    if (response.status === 'error') {
+      return [];
+    }
+    return response.stringListFlippers.get(flipperName)?.values ?? [];
   };
 
   const clientFns = {
