@@ -1,5 +1,11 @@
 # @flip-dev/flip-sdk
 
+## 0.1.0
+
+### Minor Changes
+
+- f19efb1: use new query param and response structure
+
 ## 0.0.10
 
 ### Patch Changes
