@@ -20,10 +20,5 @@
 
     "declaration": true
   },
-  "exclude": [
-    "**/*.spec.js",
-    "**/*.spec.ts",
-    "**/*.test.js",
-    "**/*.test.ts"
-  ]
+  "exclude": ["**/*.spec.js", "**/*.spec.ts", "**/*.test.js", "**/*.test.ts"]
 }
